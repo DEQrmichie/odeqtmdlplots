@@ -1,0 +1,12 @@
+Package: TMDLMrkdwn
+Type: Package
+Title: Functions used in putting together TMDL Rmarkdown documents
+Version: 0.1.0
+Author: Travis Pritchard
+Maintainer: Travis Pritchard <pritchard.travis@deq.state.or.us>
+Description: Common functions used when putting together TMDL Rmarkdown documents.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: odbc, DBI, glue
+RoxygenNote: 6.1.1
