@@ -4,14 +4,22 @@
 \alias{plot_seasonality}
 \title{plot_seasonality}
 \usage{
-plot_seasonality(station, buffer = 0.8, label.y = 12)
+plot_seasonality(station, buffer = 0.8, label_y = 12,
+  highlight_year = NULL, show_station_legend = FALSE,
+  show_highlight_legend = FALSE)
 }
 \arguments{
 \item{station}{Monitoring station to be used}
 
 \item{buffer}{Value < 1 used to draw boxed of unlikely impariemnts. Defaults to 0.80}
 
-\item{label.y}{vertical adjustment of "Impairment unlikely" label}
+\item{label_y}{vertical adjustment of "Impairment unlikely" label}
+
+\item{highlight_year}{year, or vector of years to highlight on the plot}
+
+\item{show_station_legend}{TRUE/FALSE for whether to show the station legend. Defauls to false}
+
+\item{show_highlight_legend}{TRUE/FALSE for whether to show the highlighted year legend. Defauls to false}
 }
 \value{
 plot of all 7DADM data, with criteria and identified unlikely impariment seasons
@@ -24,5 +32,5 @@ from AWQMS using the AWQMSdata package.  Choose a monitoring location with
 sufficient continuous temperature (many years worth of continuous data).
 Criteria line is drawn based of fish use station desgination.
 Blue boxed represent times of unlikely impairments. They are drawn at the
-first day with a value of buffer * criteria.
+first and last day in dataset with a value of buffer * criteria.
 }
