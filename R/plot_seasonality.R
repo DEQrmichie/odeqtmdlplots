@@ -11,16 +11,30 @@
 #'
 #' @param station Monitoring station to be used
 #' @param buffer Value < 1 used to draw boxed of unlikely impariemnts. Defaults to 0.80
-#' @param label.y vertical adjustment of "Impairment unlikely" label
+#' @param label_y vertical adjustment of "Impairment unlikely" label
+#' @param highlight_year year, or vector of years to highlight on the plot
+#' @param show_station_legend TRUE/FALSE for whether to show the station legend. Defauls to false
+#' @param show_highlight_legend TRUE/FALSE for whether to show the highlighted year legend. Defauls to false
 #' @return plot of all 7DADM data, with criteria and identified unlikely impariment seasons
 #' @importFrom magrittr "%>%"
 #' @export
 #'
 
-plot_seasonality <- function(station, buffer = 0.80, label.y = 12){
+plot_seasonality <- function(station,
+                             buffer = 0.80,
+                             label_y = 12,
+                             highlight_year = NULL,
+                             show_station_legend = FALSE,
+                             show_highlight_legend = FALSE ){
+
+
+# Get data from AWQMS -----------------------------------------------------
 
 
 AWQMS_dat <- AWQMSdata::AWQMS_Data(station = station, char = 'Temperature, water', stat_base = '7DADM', crit_codes = TRUE)
+
+
+# Join with standards and prep data for graph -----------------------------
 
 
 graph_data <- AWQMS_dat %>%
@@ -38,32 +52,87 @@ graph_data <- AWQMS_dat %>%
          fakedate = as.Date(as.numeric(doy),  origin = as.Date("2018-01-01")))
 
 
+# create dataframe filtered to highlighted years, if applicable -----------
+
+
+if(!is.null(highlight_year)){
+
+  highlight <- graph_data %>%
+    dplyr::filter(year %in% highlight_year)
+
+}
+
+
+
+# Set the dounds of the boxes ---------------------------------------------
+
+# Move to nearest 1st or 15th of the month.
 
 season <- graph_data %>%
   dplyr::filter(Result_Numeric > (0.90 * dplyr::first(graph_data$Temp_Criteria)))
+
+first_date <- as.Date(as.numeric(min(season$doy)),
+                      origin = as.Date("2018-01-01"))
+
+if(lubridate::day(first_date) > 15){
+
+  sub <- lubridate::day(first_date)-15
+
+  first_date <- first_date - sub
+
+} else if(lubridate::day(first_date) < 15 &
+          lubridate::day(first_date) > 1) {
+
+  sub <- lubridate::day(first_date)
+
+   first_date <- first_date - (sub - 1)
+
+}
+
+
+last_date <- as.Date(as.numeric(max(season$doy)),
+                      origin = as.Date("2018-01-01"))
+
+if(lubridate::day(last_date) > 15){
+
+  last_date <- lubridate::round_date(last_date, unit = "month")
+
+} else if(lubridate::day(last_date) < 15 &
+          lubridate::day(last_date) > 1) {
+
+  sub <- lubridate::day(last_date)
+
+  last_date <- last_date + (15 - sub)
+
+}
+
+
+
+# Create plot -------------------------------------------------------------
+
 
 
 p <- ggplot2::ggplot() +
   ggplot2::geom_line(data = graph_data,
             ggplot2::aes(x = as.Date(as.numeric(doy),
                             origin = as.Date("2018-01-01")),
-                y = Result_Numeric, group = year),
+                         y = Result_Numeric,
+                         group = interaction(year,MLocID),
+                         linetype = MLocID),
             color = "grey47")+
   ggplot2::geom_hline(yintercept =  dplyr::first(graph_data$Temp_Criteria),
              linetype = "longdash",
              size = 0.7) +
   ggplot2::geom_rect(ggplot2::aes(xmin = as.Date(0,
                                origin = as.Date("2018-01-01")),
-                xmax = as.Date(as.numeric(min(season$doy)),
-                               origin = as.Date("2018-01-01")),
+                xmax = first_date,
                 ymin = 0,
                 ymax = dplyr::first(graph_data$Temp_Criteria)),
             alpha = 0.2, fill = 'steelblue2'
   ) +
   ggplot2::geom_rect(ggplot2::aes(xmax = as.Date(365,
                                origin = as.Date("2018-01-01")),
-                xmin = as.Date(as.numeric(max(season$doy)),
-                               origin = as.Date("2018-01-01")),
+                xmin = last_date,
                 ymin = 0,
                 ymax = dplyr::first(graph_data$Temp_Criteria)),
             alpha = 0.2, fill = 'steelblue2')+
@@ -82,17 +151,59 @@ p <- ggplot2::ggplot() +
            size = 3) +
   ggplot2::labs(x = "Date",
        y = "7DADM Temperature (°C)",
-       caption = paste("Data source:", dplyr::first(graph_data$Org_Name))) +
+       caption = paste("Data source:", dplyr::first(graph_data$Org_Name)),
+       linetype = "Stations") +
   ggplot2::annotate("text", label = "Impairment \n unlikely",
            x = as.Date('2018-01-10'),
-           y = label.y,
+           y = label_y,
            size = 3,
            hjust = 0) +
   ggplot2::annotate("text", label = "Impairment \n unlikely",
            x = as.Date('2018-12-28'),
-           y = label.y,
+           y = label_y,
            size = 3,
            hjust = 1)
+
+
+# Add highligted year sections, if applicable -----------------------------
+
+
+
+if(!is.null(highlight_year)){
+
+  p <- p +
+    ggplot2::geom_line(data = highlight,
+                       ggplot2::aes(x = as.Date(as.numeric(doy),
+                                                origin = as.Date("2018-01-01")),
+                                    y = Result_Numeric,
+                                    group = interaction(year,MLocID),
+                                    color = as.character(highlight_year),
+                                    linetype = MLocID),
+                       size = 1.5) +
+    ggplot2::scale_color_manual(name = '', values = "black")
+
+}
+
+
+# manage showing of legends -----------------------------------------------
+
+
+# hide mlocId legend if applicable
+if(isFALSE(show_station_legend)){
+
+  p <- p +
+    ggplot2::guides(linetype=FALSE)
+}
+
+# hide highlited year legend if applicable
+if(isFALSE(show_highlight_legend)){
+
+  p <- p +
+    ggplot2::guides(color=FALSE)
+}
+
+
+# Return graph ------------------------------------------------------------
 
 
 return(p)
