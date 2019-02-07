@@ -8,5 +8,5 @@ Description: Common functions used when putting together TMDL Rmarkdown document
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: odbc, DBI, glue
+Imports: odbc, DBI, glue, magrittr, AWQMSdata, dplyr, lubridate, ggplot2
 RoxygenNote: 6.1.1
