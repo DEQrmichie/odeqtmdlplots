@@ -128,14 +128,14 @@ p <- ggplot2::ggplot() +
                 xmax = first_date,
                 ymin = 0,
                 ymax = dplyr::first(graph_data$Temp_Criteria)),
-            alpha = 0.2, fill = 'steelblue2'
+            alpha = 0.3, fill = 'steelblue2'
   ) +
   ggplot2::geom_rect(ggplot2::aes(xmax = as.Date(365,
                                origin = as.Date("2018-01-01")),
                 xmin = last_date,
                 ymin = 0,
                 ymax = dplyr::first(graph_data$Temp_Criteria)),
-            alpha = 0.2, fill = 'steelblue2')+
+            alpha = 0.3, fill = 'steelblue2')+
   ggplot2::theme_classic()+
   ggplot2::scale_y_continuous(breaks=seq(0,100,5),
                      limits = c(0,NA),
