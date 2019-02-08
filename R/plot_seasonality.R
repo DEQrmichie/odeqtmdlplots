@@ -46,6 +46,9 @@ graph_data <- AWQMS_dat %>%
          Lat_DD, Long_DD, SampleStartDate,Result_Operator,
          Result, Result_Numeric, Result_Unit, Statistical_Base,FishCode,
          Temp_Criteria, SpawnStart, SpawnEnd, FishUse) %>%
+  dplyr::group_by(MLocID) %>%
+  dplyr::complete(SampleStartDate = seq.Date(min(SampleStartDate), max(SampleStartDate), by="day")) %>%
+  dplyr::ungroup() %>%
   dplyr::mutate(year = lubridate::year(SampleStartDate),
          month = lubridate::month(SampleStartDate)) %>%
   dplyr::mutate(doy = strftime(SampleStartDate, format = "%j"),
@@ -69,9 +72,9 @@ if(!is.null(highlight_year)){
 # Move to nearest 1st or 15th of the month.
 
 season <- graph_data %>%
-  dplyr::filter(Result_Numeric > (0.90 * dplyr::first(graph_data$Temp_Criteria)))
+  dplyr::filter(Result_Numeric > (buffer * dplyr::first(graph_data$Temp_Criteria)))
 
-first_date <- as.Date(as.numeric(min(season$doy)),
+first_date <- as.Date(as.numeric(min(season$doy, na.rm = TRUE)),
                       origin = as.Date("2018-01-01"))
 
 if(lubridate::day(first_date) > 15){
@@ -90,7 +93,7 @@ if(lubridate::day(first_date) > 15){
 }
 
 
-last_date <- as.Date(as.numeric(max(season$doy)),
+last_date <- as.Date(as.numeric(max(season$doy, na.rm = TRUE)),
                       origin = as.Date("2018-01-01"))
 
 if(lubridate::day(last_date) > 15){
