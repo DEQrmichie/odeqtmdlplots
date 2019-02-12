@@ -9,29 +9,76 @@
 #' Blue boxed represent times of unlikely impairments. They are drawn at the
 #' first and last day in dataset with a value of buffer * criteria.
 #'
-#' @param station Monitoring station to be used
+#' @param station Monitoring station to be used. Can be single station or vector of stations.
+#' @param startdate Startdate of data pull
+#' @param enddate Enddate of data pull
 #' @param buffer Value < 1 used to draw boxed of unlikely impariemnts. Defaults to 0.80
 #' @param label_y vertical adjustment of "Impairment unlikely" label
 #' @param highlight_year year, or vector of years to highlight on the plot
-#' @param show_station_legend TRUE/FALSE for whether to show the station legend. Defauls to false
-#' @param show_highlight_legend TRUE/FALSE for whether to show the highlighted year legend. Defauls to false
+#' @param include_station_legend TRUE/FALSE for whether to show the station legend. Defauls to false
+#' @param include_highlight_legend TRUE/FALSE for whether to show the highlighted year legend. Defauls to false
+#' @examples plot_seasonality(station = '14034470', buffer = 0.8,
+#'   label_y = 12, highlight_year = 2014, include_station_legend = FALSE,
+#'   include_highlight_legend = FALSE)
 #' @return plot of all 7DADM data, with criteria and identified unlikely impariment seasons
+#'  \if{html}{\figure{seasonality.png}{Plot}}
+#'  \if{latex}{\figure{seasonality.png}{options: width=0.5in}}
 #' @importFrom magrittr "%>%"
 #' @export
 #'
 
 plot_seasonality <- function(station,
+                             startdate = NULL,
+                             enddate = NULL,
                              buffer = 0.80,
                              label_y = 12,
                              highlight_year = NULL,
-                             show_station_legend = FALSE,
-                             show_highlight_legend = FALSE ){
+                             include_station_legend = FALSE,
+                             include_highlight_legend = FALSE ){
 
 
 # Get data from AWQMS -----------------------------------------------------
 
 
-AWQMS_dat <- AWQMSdata::AWQMS_Data(station = station, char = 'Temperature, water', stat_base = '7DADM', crit_codes = TRUE)
+  if(!is.null(startdate) & !is.null(enddate)){
+
+
+    AWQMS_dat <- AWQMSdata::AWQMS_Data(startdate = startdate,
+                                     enddate = enddate,
+                                     station = station,
+                                     char = 'Temperature, water',
+                                     stat_base = '7DADM',
+                                     crit_codes = TRUE)
+
+    }  else if (!is.null(startdate) & is.null(enddate)){
+
+
+    AWQMS_dat <- AWQMSdata::AWQMS_Data(startdate = startdate,
+                                       station = station,
+                                       char = 'Temperature, water',
+                                       stat_base = '7DADM',
+                                       crit_codes = TRUE)
+
+  } else if (is.null(startdate) & !is.null(enddate)){
+
+
+
+    AWQMS_dat <- AWQMSdata::AWQMS_Data(startdate = startdate,
+                                       enddate = enddate,
+                                       station = station,
+                                       char = 'Temperature, water',
+                                       stat_base = '7DADM',
+                                       crit_codes = TRUE)
+
+  } else {
+
+    AWQMS_dat <- AWQMSdata::AWQMS_Data(station = station, char = 'Temperature, water', stat_base = '7DADM', crit_codes = TRUE)
+
+  }
+
+
+
+
 
 
 # Join with standards and prep data for graph -----------------------------
@@ -47,7 +94,7 @@ graph_data <- AWQMS_dat %>%
          Result, Result_Numeric, Result_Unit, Statistical_Base,FishCode,
          Temp_Criteria, SpawnStart, SpawnEnd, FishUse) %>%
   dplyr::group_by(MLocID) %>%
-  dplyr::complete(SampleStartDate = seq.Date(min(SampleStartDate), max(SampleStartDate), by="day")) %>%
+  tidyr::complete(SampleStartDate = seq.Date(min(SampleStartDate), max(SampleStartDate), by="day")) %>%
   dplyr::ungroup() %>%
   dplyr::mutate(year = lubridate::year(SampleStartDate),
          month = lubridate::month(SampleStartDate)) %>%
@@ -182,7 +229,7 @@ if(!is.null(highlight_year)){
                                     group = interaction(year,MLocID),
                                     color = as.character(highlight_year),
                                     linetype = MLocID),
-                       size = 1.5) +
+                       size = 1.2) +
     ggplot2::scale_color_manual(name = '', values = "black")
 
 }
@@ -192,14 +239,14 @@ if(!is.null(highlight_year)){
 
 
 # hide mlocId legend if applicable
-if(isFALSE(show_station_legend)){
+if(isFALSE(include_station_legend)){
 
   p <- p +
     ggplot2::guides(linetype=FALSE)
 }
 
 # hide highlited year legend if applicable
-if(isFALSE(show_highlight_legend)){
+if(isFALSE(include_highlight_legend)){
 
   p <- p +
     ggplot2::guides(color=FALSE)

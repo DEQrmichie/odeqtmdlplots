@@ -4,12 +4,16 @@
 \alias{plot_seasonality}
 \title{plot_seasonality}
 \usage{
-plot_seasonality(station, buffer = 0.8, label_y = 12,
-  highlight_year = NULL, show_station_legend = FALSE,
-  show_highlight_legend = FALSE)
+plot_seasonality(station, startdate = NULL, enddate = NULL,
+  buffer = 0.8, label_y = 12, highlight_year = NULL,
+  include_station_legend = FALSE, include_highlight_legend = FALSE)
 }
 \arguments{
-\item{station}{Monitoring station to be used}
+\item{station}{Monitoring station to be used. Can be single station or vector of stations.}
+
+\item{startdate}{Startdate of data pull}
+
+\item{enddate}{Enddate of data pull}
 
 \item{buffer}{Value < 1 used to draw boxed of unlikely impariemnts. Defaults to 0.80}
 
@@ -17,12 +21,14 @@ plot_seasonality(station, buffer = 0.8, label_y = 12,
 
 \item{highlight_year}{year, or vector of years to highlight on the plot}
 
-\item{show_station_legend}{TRUE/FALSE for whether to show the station legend. Defauls to false}
+\item{include_station_legend}{TRUE/FALSE for whether to show the station legend. Defauls to false}
 
-\item{show_highlight_legend}{TRUE/FALSE for whether to show the highlighted year legend. Defauls to false}
+\item{include_highlight_legend}{TRUE/FALSE for whether to show the highlighted year legend. Defauls to false}
 }
 \value{
 plot of all 7DADM data, with criteria and identified unlikely impariment seasons
+ \if{html}{\figure{seasonality.png}{Plot}}
+ \if{latex}{\figure{seasonality.png}{options: width=0.5in}}
 }
 \description{
 This function produces a graph pf seven day average daily maximum river
@@ -33,4 +39,9 @@ sufficient continuous temperature (many years worth of continuous data).
 Criteria line is drawn based of fish use station desgination.
 Blue boxed represent times of unlikely impairments. They are drawn at the
 first and last day in dataset with a value of buffer * criteria.
+}
+\examples{
+plot_seasonality(station = '14034470', buffer = 0.8,
+  label_y = 12, highlight_year = 2014, include_station_legend = FALSE,
+  include_highlight_legend = FALSE)
 }
