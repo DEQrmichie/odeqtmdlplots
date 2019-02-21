@@ -4,19 +4,24 @@
 \alias{plot_diff_box}
 \title{plot_diff_box}
 \usage{
-plot_diff_box(downstream, upstream, startdate, enddate,
+plot_diff_box(df, station_1, station_2, station_col = "MLocID",
+  Date_col = "SampleStartDate", Result_col = "Result_Numeric",
   temp_filter = NULL)
 }
 \arguments{
-\item{downstream}{downstream monitoring location}
+\item{df}{datafram of data to compare}
 
-\item{upstream}{upstream monitoring location}
+\item{station_1}{Name of first station (Upstream?)}
 
-\item{startdate}{Startdate: format = 'yyyy-mm-dd'}
+\item{station_2}{Name of second station (Downstream?)}
 
-\item{enddate}{Enddate: format = 'yyy-mm-dd'}
+\item{station_col}{Name of column containing the location data. Must be in quotes.}
 
-\item{temp_filter}{optional filter for upstream temperature. Plot will only display upstream temps >=  temp_filter.}
+\item{Date_col}{Name of column containing the date. Must be in quotes.}
+
+\item{Result_col}{Name of column containing the results. Must be in quotes.}
+
+\item{temp_filter}{optional filter for upstream temperature. Plot will only display station_1 temps >=  temp_filter.}
 }
 \value{
 boxplot showing difference between upstream and downstream temperatures
@@ -25,10 +30,15 @@ boxplot showing difference between upstream and downstream temperatures
 }
 \description{
 Crates a monthly boxplot distribution of the daily difference between
-upsteam and downstream temperatures (downstream - upstream). Allows for
+upsteam and downstream temperatures (station1 - station2). Allows for
 filtering based on upstream temperature >=  temp_filter. Data source is
 AWQMS.
 }
 \examples{
-plot_diff_box(startdate = '2014-01-01', enddate = '2014-12-31', upstream = '14046778', downstream = '14034470', temp_filter = 10)
+funct_test <- plot_diff_box(df = dataframe,
+  station_1 = "14046778",
+  station_2 =  "14034470",
+  station_col = "MLocID",
+  Date_col = "SampleStartDate",
+  Result_col= "Result_Numeric",
 }

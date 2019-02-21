@@ -3,6 +3,7 @@
 #'This function will return a dataframe of waterbodies listed as either category 4 or 5 for
 #'a given set of subbasins (huc4's) and parameters
 #'@param database Source database
+#'@param table Table in database to source data from.
 #'@param parameter string, or vector of strings, for parameter to be used
 #'@param subbasins string, or vector of strings, of HUC 4 subbasin names
 #'@return Dataframe of IR category 4 and category 5
@@ -10,7 +11,7 @@
 
 
 
-impaired_waters <- function(database, parameter = NULL, subbasins = NULL){
+impaired_waters <- function(database = "WQ303d", table = "tbl2012303dIntegratedList",  parameter = NULL, HUC8Code = NULL){
 
 
   #Connect to database
@@ -19,15 +20,15 @@ impaired_waters <- function(database, parameter = NULL, subbasins = NULL){
   # Change these subbasins to change results in produced table
 
 
-  query <- "SELECT [4thFieldName] as 'Subasin',
+  query <- paste0("SELECT [4thFieldName] as 'Subasin',
   [StreamLakeName] as 'Waterbody',
   [Miles] as 'River Mile',
   [Parameter],
   [NumericCriteria] as 'Criterion',
   right([ListingYear], 4) as 'List Date',
   [PKmatrixID] as 'Record ID'
-  FROM [WQ303d].[dbo].[tbl2012303dIntegratedList]
-  Where ListingStatusKey in (20, 14, 15, 16,17)"
+  FROM [WQ303d].[dbo].[",table,"]
+  Where ListingStatusKey in (20, 14, 15, 16,17)")
 
 #
 # Parameter in ({parameter})
@@ -46,8 +47,8 @@ impaired_waters <- function(database, parameter = NULL, subbasins = NULL){
 
     query <- paste(query, "AND \n (")
 
-  for (i in 1:length(subbasins)) {
-    query <- paste0(query, "[4thFieldName] like '%",subbasins[i], "%'" )
+  for (i in 1:length(HUC8Code)) {
+    query <- paste0(query, "[4thFieldHUC] like '%",subbasins[i], "%'" )
 
     if(i < length(subbasins)) {
       query <- paste0(query, " or ")
