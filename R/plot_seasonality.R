@@ -24,9 +24,31 @@
 #' @param lab_crit_y_nudge Move criteria label up or down
 #' @param lab_crit_x_nudge Move criteria left or right
 #' @param rm_legend If TRUE, remove the legend
-#' @examples plot_seasonality(station = '14034470', buffer = 0.8,
-#'   label_y = 12, highlight_year = 2014, include_station_legend = FALSE,
-#'   include_highlight_legend = FALSE)
+#' @examples
+#'  \dontrun{
+#'
+#'  library(AWQMSdata)
+#'  library(TMDLMrkdwn)
+#'
+#'  data <- AWQMS_Data(station = '14034470', char = "temperature, water", stat_base = "7DADM")
+#'
+#'
+#'  plot_seasonality(df = data,
+#'                   station_col = 'MLocID',
+#'                   date_col = 'SampleStartDate',
+#'                   result_col = 'Result_Numeric',
+#'                   temp_criteria = 18,
+#'                   spawn_criteria = 13,
+#'                   spawn_start = "05-01",
+#'                   spawn_end = "10-01",
+#'                   fish_use = 'Redband',
+#'                   lab_spawn_x_nudge = 60,
+#'                   rm_legend = TRUE)
+#'
+#' }
+#'
+#'
+#'
 #' @return plot of all 7DADM data, with criteria and identified unlikely impariment seasons
 #'  \if{html}{\figure{seasonality.png}{Plot}}
 #'  \if{latex}{\figure{seasonality.png}{options: width=0.5in}}
@@ -35,7 +57,7 @@
 #'
 
 
-plot_seasonality2 <- function(df,
+plot_seasonality <- function(df,
                               station_col = 'MLocID',
                               date_col = 'SampleStartDate',
                               result_col = 'Result_Numeric',

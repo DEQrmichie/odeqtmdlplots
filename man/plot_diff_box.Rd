@@ -35,7 +35,7 @@ filtering based on upstream temperature >=  temp_filter. Data source is
 AWQMS.
 }
 \examples{
-funct_test <- plot_diff_box(df = dataframe,
+ plot_diff_box(df = dataframe,
   station_1 = "14046778",
   station_2 =  "14034470",
   station_col = "MLocID",

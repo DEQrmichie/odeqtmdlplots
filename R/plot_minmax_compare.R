@@ -19,11 +19,14 @@
 #' @param spawnstart Optional start of spawning season
 #' @param spawnend Optional end of spawning season
 #' @param crit Optional non-spwaning crietria
-#' @param Soawn_cirt = Optional spawning season criteria
-#' @examples plot_minmax_compare(df = minmax, date_col = "SampleStartDate" , min_col = "Minimum", max_col = "Maximum",
-#`  station_name_col = "Station",  grey_station = "Downstream", red_station = "Upstream",
-#`  crit = 20)
-#' @return plot showing dailt min and max 7DADM temperatures, comparied upstream with downstream
+#' @param spawn_crit = Optional spawning season criteria
+#' @examples
+#'  \dontrun{
+#'   plot_minmax_compare(df = minmax, date_col = "SampleStartDate",
+#'    min_col = "Minimum", max_col = "Maximum", station_name_col = "Station",
+#'    grey_station = "Downstream", red_station = "Upstream", crit = 20)
+#'  }
+#' @return plot showing daily min and max 7DADM temperatures, comparied upstream with downstream
 #'   \if{html}{\figure{minmax_compare.png}{Plot}}
 #'   \if{latex}{\figure{minmax_compare.png}{options: width=0.5in}}
 #' @importFrom magrittr "%>%"

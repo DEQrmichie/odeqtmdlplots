@@ -4,19 +4,32 @@
 \alias{impaired_waters}
 \title{impaired_waters}
 \usage{
-impaired_waters(database, parameter = NULL, subbasins = NULL)
+impaired_waters(database = "WQ303d",
+  table = "tbl2012303dIntegratedList", parameter = NULL,
+  HUC8Code = NULL)
 }
 \arguments{
 \item{database}{Source database}
 
+\item{table}{Table in database to source data from.}
+
 \item{parameter}{string, or vector of strings, for parameter to be used}
 
-\item{subbasins}{string, or vector of strings, of HUC 4 subbasin names}
+\item{HUC8Code}{string, or vector of strings, of HUC 4 subbasin names}
 }
 \value{
 Dataframe of IR category 4 and category 5
 }
 \description{
 This function will return a dataframe of waterbodies listed as either category 4 or 5 for
-a given set of subbasins (huc4's) and parameters
+a given set of subbasins (huc4's) and parameters. Defaults to using 2012 IR report. Will
+be updated once the 2018 report is finalized.
+}
+\examples{
+ \dontrun{
+ Rogue_Listings <- impaired_waters(database = "WQ303d",
+                   table = "tbl2012303dIntegratedList",
+                   parameter = "Temperature",
+                   HUC8Code = c('17100307', '17100308', '17100310', '17100311'))
+ }
 }

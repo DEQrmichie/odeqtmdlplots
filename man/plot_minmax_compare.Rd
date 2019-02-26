@@ -4,33 +4,51 @@
 \alias{plot_minmax_compare}
 \title{plot_minmax_compare}
 \usage{
-plot_minmax_compare(upstream = NULL, downstream = NULL, startdate,
-  enddate, include_legend = TRUE)
+plot_minmax_compare(df, date_col, min_col, max_col, station_name_col,
+  grey_station, red_station = NULL, spawnstart = NULL,
+  spawnend = NULL, crit = NULL, spawn_crit = NULL)
 }
 \arguments{
-\item{upstream}{Upstream monitoring location ID}
+\item{df}{Dataframe of data to be graphed}
 
-\item{downstream}{Downstream monitoring location ID}
+\item{date_col}{Name of date column}
 
-\item{startdate}{Startdate: format = 'yyyy-mm-dd'}
+\item{min_col}{Name of daily minimum column}
 
-\item{enddate}{Enddate: format = 'yyy-mm-dd'}
+\item{max_col}{name of daily maximum column}
 
-\item{include_legend}{if FALSE, do not include legend. defaults to TRUE}
+\item{station_name_col}{name of station column}
+
+\item{grey_station}{Station that will be graphed in grey}
+
+\item{red_station}{Station that will be graphed in red}
+
+\item{spawnstart}{Optional start of spawning season}
+
+\item{spawnend}{Optional end of spawning season}
+
+\item{crit}{Optional non-spwaning crietria}
+
+\item{spawn_crit}{= Optional spawning season criteria}
 }
 \value{
-plot showing dailt min and max 7DADM temperatures, comparied upstream with downstream
+plot showing daily min and max 7DADM temperatures, comparied upstream with downstream
   \if{html}{\figure{minmax_compare.png}{Plot}}
   \if{latex}{\figure{minmax_compare.png}{options: width=0.5in}}
 }
 \description{
 Creates a plot showing the daily minimum and maximum water temperature
 for 2 monitoring locations. Intended to be used to show the difference
-between upstream and downstream monitoring locations. If only 1 monitoring
-location is desired, only include the upstream location. Plot includes
-7DADM criteria for upstream location. Data source is AWQMS
+between upstream and downstream monitoring locations. Source datafram
+must have at least 4 columns: Date, station, minimum, and maximum.
+If only 1 monitoring location is desired, only include the upstream
+location. Dataframe must be in 'long' format, but with seperate
+columns for daily minimum and maximum.
 }
 \examples{
-plot_minmax_compare(upstream = '14046778', downstream = '14034470',
-  startdate = '2014-06-01', enddate = '2014-10-31')
+ \dontrun{
+  plot_minmax_compare(df = minmax, date_col = "SampleStartDate",
+   min_col = "Minimum", max_col = "Maximum", station_name_col = "Station",
+   grey_station = "Downstream", red_station = "Upstream", crit = 20)
+ }
 }
