@@ -7,7 +7,7 @@
 cfreqdist(df, station1 = NULL, station2 = NULL,
   station_col = "MLocID", date_col = "SampleStartDate",
   result_col = "Result_Numeric", p1title = NULL, p2title = NULL,
-  leg_x_nudge = 0, leg_y_nudge = 0)
+  leg_x_nudge = 0, leg_y_nudge = 0, cfd_diff_x_int = 0)
 }
 \arguments{
 \item{df}{Dataframe of data. Should be in long format}
