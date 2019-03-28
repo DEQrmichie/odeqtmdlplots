@@ -116,7 +116,7 @@ p1 <- ggplot2::ggplot(data = graph_data) +
 
 
 #Draw x intercept line if cfd_x_int is not null
-if(!is.NULL(x_int_cfd)){
+if(!is.null(x_int_cfd)){
 
   p1 <- P1 +
     ggplot2::geom_vline(xintercept = x_int_cfd)
@@ -125,7 +125,7 @@ if(!is.NULL(x_int_cfd)){
 
 
 #Add titles. If p1title is null, leave out that title.
-if(!is.Null(p1title)){
+if(!is.null(p1title)){
 
   p1 <- p1+
     ggplot2::labs(x = "Temperature (°C)",
@@ -162,7 +162,7 @@ p2 <- ggplot2::ggplot(data = data_spread) +
                      limits = c(0,1),
                      expand = c(0,0))
 
-if(!is.NULL(p2title)){
+if(!is.null(p2title)){
   p2 <- p2 +
     ggplot2::labs(x = "Temperature (°C)", title = p2title, y = NULL)
 

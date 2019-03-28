@@ -207,7 +207,17 @@ plot_seasonality <- function(df,
                                       xmax = as.Date("12-31", format = "%m-%d"),
                                       ymin = 0,
                                       ymax = temp_criteria),
-                         alpha = 0.3, fill = 'steelblue2')
+                         alpha = 0.3, fill = 'steelblue2') +
+      ggplot2::annotate("text", label = "Impairment \n unlikely",
+                        x = as.Date('01-10', format = "%m-%d"),
+                        y = 10 + lab_impair_y_nudge,
+                        size = 3,
+                        hjust = 0) +
+      ggplot2::annotate("text", label = paste(fish_use, "Biological Criterion"),
+                        x = as.Date("01-01", format = "%m-%d") + lab_crit_x_nudge,
+                        y = temp_criteria  + 0.5  + lab_crit_y_nudge,
+                        size = 3,
+                        hjust = 0)
 
     #spawn in middle of period
   } else if(as.Date(spawn_start, format = "%m-%d") < as.Date(spawn_end, format = "%m-%d") &
@@ -255,7 +265,7 @@ plot_seasonality <- function(df,
 
 
 
-    if(!rm_labels){
+    if(rm_labels == TRUE){
       g <- g +
         ggplot2::annotate("text", label = "Impairment \n unlikely",
                           x = as.Date('01-10', format = "%m-%d"),

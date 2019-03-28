@@ -7,7 +7,8 @@
 cfreqdist(df, station1 = NULL, station2 = NULL,
   station_col = "MLocID", date_col = "SampleStartDate",
   result_col = "Result_Numeric", p1title = NULL, p2title = NULL,
-  leg_x_nudge = 0, leg_y_nudge = 0, cfd_diff_x_int = 0)
+  leg_x_nudge = 0, leg_y_nudge = 0, x_int_cfd = NULL,
+  x_int_cfd_diff = 0)
 }
 \arguments{
 \item{df}{Dataframe of data. Should be in long format}
@@ -29,6 +30,11 @@ cfreqdist(df, station1 = NULL, station2 = NULL,
 \item{leg_x_nudge}{Move the legend left or right. (-0.25 to 0.25)}
 
 \item{leg_y_nudge}{Move the legend up or down. (-0.25 to 0.25)}
+
+\item{x_int_cfd}{Verical line on the cfd graph. Used to show water quality
+standard. If NULL, no line is drawn.}
+
+\item{x_int_cfd_diff}{Vertical line on the cfd_difference graph. Defaults to 0}
 }
 \value{
 plot of all cumulative frequency and cumulative frequency

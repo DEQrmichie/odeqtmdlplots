@@ -58,5 +58,5 @@ if(!is.null(exclude_field)) {
 
 }
 
-unique(import_data$ben_use_code)
+
 
