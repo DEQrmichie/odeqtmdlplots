@@ -10,7 +10,8 @@ plot_seasonality(df, station_col = "MLocID",
   spawn_end = NULL, fish_use = NULL, buffer = 0.8,
   highlight_year = NULL, rm_labels = FALSE, lab_impair_y_nudge = 0,
   lab_spawn_y_nudge = 0, lab_spawn_x_nudge = 0, lab_crit_y_nudge = 0,
-  lab_crit_x_nudge = 0, rm_legend = FALSE)
+  lab_crit_x_nudge = 0, y_axis_max = NA, y_label = NULL,
+  rm_legend = FALSE)
 }
 \arguments{
 \item{df}{Dataframe of data to be graphes}

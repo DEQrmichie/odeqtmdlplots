@@ -74,6 +74,8 @@ plot_seasonality <- function(df,
                               lab_spawn_x_nudge = 0,
                               lab_crit_y_nudge = 0,
                               lab_crit_x_nudge = 0,
+                              y_axis_max = NA,
+                              y_label = NULL,
                               rm_legend = FALSE){
 
   if(is.null(temp_criteria)){
@@ -81,7 +83,7 @@ plot_seasonality <- function(df,
   }
 
 
-  df <- graph_data <- df[,c(station_col, date_col,result_col)]
+  df <-  df[,c(station_col, date_col,result_col)]
 
   colnames(df) <- c("MLocID", "SampleStartDate", "Result_Numeric")
 
@@ -111,13 +113,54 @@ plot_seasonality <- function(df,
     dplyr::filter(Result_Numeric > (buffer * temp_criteria))
 
 
-  if(nrow(season) > 0){
 
+  if (nrow(season) > 0) {
     first_date <- as.Date((min(season$doy, na.rm = TRUE)),
                           format = "%m-%d")
 
     last_date <- as.Date((max(season$doy, na.rm = TRUE)),
                          format = "%m-%d")
+
+    if (day(first_date) < 15) {
+      first_date <-  as.Date(paste0(month(first_date),
+                                    "-",
+                                    1),
+                             format = "%m-%d")
+
+    } else if (day(first_date) == 15) {
+      first_date <-  first_date
+
+    } else if (day(first_date) < days_in_month(last_date)) {
+      first_date <-  as.Date(paste0(month(first_date),
+                                    "-",
+                                    15),
+                             format = "%m-%d")
+    } else {
+      first_date <-  first_date
+    }
+
+
+
+
+    if (day(last_date) > 1) {
+      last_date <-  as.Date(paste0(month(last_date),
+                                   "-",
+                                   15),
+                            format = "%m-%d")
+
+    } else if (day(last_date) == 15) {
+      last_date <-  last_date
+
+    } else if (day(last_date) > 15) {
+      last_date <-  as.Date(paste0(month(last_date),
+                                   "-",
+                                   days_in_month(last_date)),
+                            format = "%m-%d")
+    } else {
+      last_date <-  last_date
+    }
+
+
 
   } else {
     first_date <- as.Date("12-31",
@@ -126,7 +169,6 @@ plot_seasonality <- function(df,
                          format = "%m-%d")
 
   }
-
 
   if(!is.null(spawn_end)){
     # spawn -------------------------------------------------------------------
@@ -178,15 +220,26 @@ plot_seasonality <- function(df,
                           date_labels = "%b",
                           expand = ggplot2::expand_scale())+
     ggplot2::scale_y_continuous(breaks=seq(0,100,5),
-                                limits = c(0,NA),
+                                limits = c(0,y_axis_max),
                                 expand = c(0,0))+
-    ggplot2::labs(x = "Date",
-                  y = "7DADM Temperature (°C)") +
     #ggplot2::guides(linetype=FALSE) +
     ggplot2::guides(color=ggplot2::guide_legend(title="Year"),
                     linetype=ggplot2::guide_legend(title="Monitoring Location"))+
     ggplot2::theme(legend.position="bottom")
   #break here
+
+  if(is.null(y_label)) {
+
+    g <- g +
+      ggplot2::labs(x = "Date",
+                  y = "7DADM Temperature (°C)")
+  } else {
+    g <- g +
+      ggplot2::labs(x = "Date",
+                    y = y_label)
+
+  }
+
 
   # No spawn
 
@@ -213,7 +266,7 @@ plot_seasonality <- function(df,
                         y = 10 + lab_impair_y_nudge,
                         size = 3,
                         hjust = 0) +
-      ggplot2::annotate("text", label = paste(fish_use, "Biological Criterion"),
+      ggplot2::annotate("text", label = paste(fish_use, "-", temp_criteria, " C"),
                         x = as.Date("01-01", format = "%m-%d") + lab_crit_x_nudge,
                         y = temp_criteria  + 0.5  + lab_crit_y_nudge,
                         size = 3,
@@ -277,7 +330,7 @@ plot_seasonality <- function(df,
                           y = spawn_criteria  + 0.5  + lab_spawn_y_nudge,
                           size = 3,
                           hjust = 0) +
-        ggplot2::annotate("text", label = paste(fish_use, "Biological Criterion"),
+        ggplot2::annotate("text", label = paste(fish_use, "-", temp_criteria, " C"),
                           x = as.Date('01-10', format = "%m-%d") + lab_crit_x_nudge,
                           y = temp_criteria  + 0.5  + lab_crit_y_nudge,
                           size = 3,
@@ -342,7 +395,7 @@ plot_seasonality <- function(df,
                           y = spawn_criteria  + 0.5  + lab_spawn_y_nudge,
                           size = 3,
                           hjust = 0) +
-        ggplot2::annotate("text", label = paste(fish_use, "Biological Criterion"),
+        ggplot2::annotate("text", label = paste(fish_use, "-", temp_criteria, " C"),
                           x = as.Date(spawn_end, format = "%m-%d") + lab_crit_x_nudge,
                           y = temp_criteria  + 0.5  + lab_crit_y_nudge,
                           size = 3,
@@ -396,7 +449,7 @@ plot_seasonality <- function(df,
                         y = spawn_criteria  + 0.5  + lab_spawn_y_nudge,
                         size = 3,
                         hjust = 0) +
-         ggplot2::annotate("text", label = paste(fish_use, "Biological Criterion"),
+         ggplot2::annotate("text", label = paste(fish_use, "-", temp_criteria, " C"),
                         x = as.Date(spawn_end, format = "%m-%d") + lab_crit_x_nudge,
                         y = temp_criteria  + 0.5  + lab_crit_y_nudge,
                         size = 3,
@@ -436,7 +489,9 @@ plot_seasonality <- function(df,
 
 
 
-  if(!is.null(highlight_year)){
+  if(!is.null(highlight_year) > 0){
+
+    if(nrow(highlight) > 0){
 
     g <- g +
       ggplot2::geom_line(data = highlight,
@@ -447,6 +502,11 @@ plot_seasonality <- function(df,
                                       linetype = MLocID),
                          size = 1.2) +
       ggplot2::scale_color_manual(name = '', values = "black")
+
+    } else {
+
+      g <- g
+    }
 
   }
 
