@@ -1,15 +1,23 @@
-Package: TMDLMrkdwn
+Package: odeqtmdlplots
 Type: Package
-Title: Functions used in putting together TMDL Rmarkdown documents
+Title: Functions to support plots and summaries used for Oregon DEQ's TMDLs
 Version: 0.1.0
-Author: Travis Pritchard
-Maintainer: Travis Pritchard <pritchard.travis@deq.state.or.us>
-Description: Common functions used when putting together TMDL Rmarkdown documents.
-License: What license is it under?
+Authors@R: 
+    c(person(given = "Ryan",
+           family = "Michie",
+           role = c("aut",),
+           email = "Ryan.Michie@odeq.oregon.gov"),
+      person(given = "Travis",
+           family = "Pritchard",
+           role = c("aut"),
+           email = "Travis.Pritchard@odeq.oregon.gov"))
+Description: Common functions used to make plots and tables when putting together TMDLs. 
+    Right now the functions are focuded on temperature
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports: odbc, DBI, glue, 
          magrittr, AWQMSdata, 
          dplyr, lubridate, ggplot2,
          tidyr, cowplot
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.2
