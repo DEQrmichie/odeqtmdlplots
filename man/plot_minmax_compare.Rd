@@ -4,9 +4,19 @@
 \alias{plot_minmax_compare}
 \title{plot_minmax_compare}
 \usage{
-plot_minmax_compare(df, date_col, min_col, max_col, station_name_col,
-  grey_station, red_station = NULL, spawnstart = NULL,
-  spawnend = NULL, crit = NULL, spawn_crit = NULL)
+plot_minmax_compare(
+  df,
+  date_col,
+  min_col,
+  max_col,
+  station_name_col,
+  grey_station,
+  red_station = NULL,
+  spawnstart = NULL,
+  spawnend = NULL,
+  crit = NULL,
+  spawn_crit = NULL
+)
 }
 \arguments{
 \item{df}{Dataframe of data to be graphed}

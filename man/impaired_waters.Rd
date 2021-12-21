@@ -4,9 +4,12 @@
 \alias{impaired_waters}
 \title{impaired_waters}
 \usage{
-impaired_waters(database = "WQ303d",
-  table = "tbl2012303dIntegratedList", parameter = NULL,
-  HUC8Code = NULL)
+impaired_waters(
+  database = "WQ303d",
+  table = "tbl2012303dIntegratedList",
+  parameter = NULL,
+  HUC8Code = NULL
+)
 }
 \arguments{
 \item{database}{Source database}

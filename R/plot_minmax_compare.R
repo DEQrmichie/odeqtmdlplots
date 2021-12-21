@@ -38,7 +38,7 @@
 
 plot_minmax_compare <- function(df, date_col, min_col, max_col,
                                 station_name_col, grey_station, red_station = NULL, spawnstart = NULL, spawnend = NULL,
-                                crit = NULL, spawn_crit= NULL) {
+                                crit = NULL, spawn_crit = NULL) {
 
 
   graph_data <- df[,c(date_col, min_col,max_col, station_name_col)]

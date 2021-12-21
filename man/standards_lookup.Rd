@@ -4,9 +4,14 @@
 \alias{standards_lookup}
 \title{standards_lookup}
 \usage{
-standards_lookup(HUC8, exclude_field = NULL, exclude_params = NULL,
+standards_lookup(
+  HUC8,
+  exclude_field = NULL,
+  exclude_params = NULL,
   layer = "Oregon_Standards",
-  gdb_file = "//deqhq1/GISLIBRARY/Base_Data/DEQ_Data/Water_Quality/WQ_Standards/GeoRef_Standards.gdb")
+ 
+    gdb_file = "//deqhq1/GISLIBRARY/Base_Data/DEQ_Data/Water_Quality/WQ_Standards/GeoRef_Standards.gdb"
+)
 }
 \arguments{
 \item{HUC8}{Vector of HUC8s to filter on.}

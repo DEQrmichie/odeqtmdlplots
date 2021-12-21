@@ -2,23 +2,23 @@
 #'
 #' This function produces a graph pf seven day average daily maximum river
 #' temperatures for a single monitoring location. These graphs are intended
-#' to be placed in the thrid section of the temperture TMDL. Choose a monitoring location with
+#' to be placed in the third section of the temperature TMDL. Choose a monitoring location with
 #' sufficient continuous temperature (many years worth of continuous data).
-#' Criteria line is drawn based of fish use station desgination.
+#' Criteria line is drawn based of fish use station designation.
 #' Blue boxed represent times of unlikely impairments. They are drawn at the
 #' first and last day in dataset with a value of buffer * criteria.
 #'
-#' @param df Dataframe of data to be graphes
-#' @param station_col Name of column containting station info. Date should be formatted in y-m-d
+#' @param df Data frame of data to be graphed
+#' @param station_col Name of column containing station info. Date should be formatted in y-m-d
 #' @param result_col Name of column containing result information
 #' @param temp_criteria Temperature criteria. Numeric
 #' @param spawn_criteria Spawning criteria
-#' @param spawn_start Start of spawning season. fprmat as Character- "mm-dd"
-#' @param spawn_end End of spawning season. fprmat as Character- "mm-dd"
+#' @param spawn_start Start of spawning season. format as Character- "mm-dd"
+#' @param spawn_end End of spawning season. format as Character- "mm-dd"
 #' @param buffer Buffer value
-#' @param highlight_year Optional year to hightlight on graph
+#' @param highlight_year Optional year to highlight on graph
 #' @param rm_labels if TRUE, remove labels from graph
-#' @param lab_impair_y_nudge Move the Impairement Unlikely label up or down
+#' @param lab_impair_y_nudge Move the impairment Unlikely label up or down
 #' @param lab_spawn_y_nudge Move the spawning criteria label up or down
 #' @param lab_spawn_x_nudge Move the spawning criteria label left or right
 #' @param lab_crit_y_nudge Move criteria label up or down
@@ -28,7 +28,7 @@
 #'  \dontrun{
 #'
 #'  library(AWQMSdata)
-#'  library(TMDLMrkdwn)
+#'  library(odeqtmdlplots)
 #'
 #'  data <- AWQMS_Data(station = '14034470', char = "temperature, water", stat_base = "7DADM")
 #'

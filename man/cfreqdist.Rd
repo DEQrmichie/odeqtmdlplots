@@ -4,11 +4,20 @@
 \alias{cfreqdist}
 \title{cfreqdist}
 \usage{
-cfreqdist(df, station1 = NULL, station2 = NULL,
-  station_col = "MLocID", date_col = "SampleStartDate",
-  result_col = "Result_Numeric", p1title = NULL, p2title = NULL,
-  leg_x_nudge = 0, leg_y_nudge = 0, x_int_cfd = NULL,
-  x_int_cfd_diff = 0)
+cfreqdist(
+  df,
+  station1 = NULL,
+  station2 = NULL,
+  station_col = "MLocID",
+  date_col = "SampleStartDate",
+  result_col = "Result_Numeric",
+  p1title = NULL,
+  p2title = NULL,
+  leg_x_nudge = 0,
+  leg_y_nudge = 0,
+  x_int_cfd = NULL,
+  x_int_cfd_diff = 0
+)
 }
 \arguments{
 \item{df}{Dataframe of data. Should be in long format}
@@ -17,7 +26,7 @@ cfreqdist(df, station1 = NULL, station2 = NULL,
 
 \item{station2}{Name of station 2 in the station column (station_col)}
 
-\item{station_col}{Name of the column conatining the station names}
+\item{station_col}{Name of the column containing the station names}
 
 \item{date_col}{Name of the column containing the date information}
 
@@ -31,7 +40,7 @@ cfreqdist(df, station1 = NULL, station2 = NULL,
 
 \item{leg_y_nudge}{Move the legend up or down. (-0.25 to 0.25)}
 
-\item{x_int_cfd}{Verical line on the cfd graph. Used to show water quality
+\item{x_int_cfd}{Vertical line on the cfd graph. Used to show water quality
 standard. If NULL, no line is drawn.}
 
 \item{x_int_cfd_diff}{Vertical line on the cfd_difference graph. Defaults to 0}
@@ -43,7 +52,7 @@ plot of all cumulative frequency and cumulative frequency
  \if{latex}{\figure{cumfreq.png}{options: width=0.5in}}
 }
 \description{
-This function creates a graphc of two plots First plot is the
+This function creates a graphic of two plots First plot is the
 cumulative frequency distribution of two monitoring locations.
 The second is the cumulative frequency of the difference between the
 two monitoring locations (station1 - station2). Data input should be a

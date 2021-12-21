@@ -4,9 +4,15 @@
 \alias{plot_diff_box}
 \title{plot_diff_box}
 \usage{
-plot_diff_box(df, station_1, station_2, station_col = "MLocID",
-  Date_col = "SampleStartDate", Result_col = "Result_Numeric",
-  temp_filter = NULL)
+plot_diff_box(
+  df,
+  station_1,
+  station_2,
+  station_col = "MLocID",
+  Date_col = "SampleStartDate",
+  Result_col = "Result_Numeric",
+  temp_filter = NULL
+)
 }
 \arguments{
 \item{df}{datafram of data to compare}

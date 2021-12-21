@@ -1,6 +1,6 @@
 #' cfreqdist
 #'
-#' This function creates a graphc of two plots First plot is the
+#' This function creates a graphic of two plots First plot is the
 #' cumulative frequency distribution of two monitoring locations.
 #' The second is the cumulative frequency of the difference between the
 #' two monitoring locations (station1 - station2). Data input should be a
@@ -10,10 +10,10 @@
 #' @param df Dataframe of data. Should be in long format
 #' @param station1 Name of station 1 in the station column (station_col)
 #' @param station2 Name of station 2 in the station column (station_col)
-#' @param station_col Name of the column conatining the station names
+#' @param station_col Name of the column containing the station names
 #' @param date_col Name of the column containing the date information
 #' @param result_col Name of the column containing the results to plot
-#' @param x_int_cfd Verical line on the cfd graph. Used to show water quality
+#' @param x_int_cfd Vertical line on the cfd graph. Used to show water quality
 #'   standard. If NULL, no line is drawn.
 #' @param x_int_cfd_diff Vertical line on the cfd_difference graph. Defaults to 0
 #' @param p1title Title of the cumulative frequency distribution plot

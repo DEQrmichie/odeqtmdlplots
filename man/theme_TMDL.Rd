@@ -7,7 +7,7 @@
 theme_TMDL(base_size = 11)
 }
 \arguments{
-\item{base_size}{base font size}
+\item{base_size}{base font size, given in pts.}
 }
 \description{
 A theme to base graphs on for TMDL reports
