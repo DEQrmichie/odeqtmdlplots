@@ -5,7 +5,7 @@ Version: 0.1.0
 Authors@R: 
     c(person(given = "Ryan",
            family = "Michie",
-           role = c("aut",),
+           role = c("aut", "cre"),
            email = "Ryan.Michie@odeq.oregon.gov"),
       person(given = "Travis",
            family = "Pritchard",
