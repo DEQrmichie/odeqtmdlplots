@@ -22,6 +22,8 @@ A slimmer data frame checked for quality.
 }
 \description{
 Removes unnecessary variables, checks data for quality,
-converts ug/L to mg/L and degrees Fahrenheit to degrees Celsius, adds "sample_datetime" and "sample_id" columns.
+converts ug/L to mg/L and degrees Fahrenheit to degrees Celsius, adds
+"sample_datetime" and "sample_id" columns. Updates 'Temp_Criteria' column to 13 during spawning period.
+Sorts data by 'MLocID', 'Char_Name', and 'sample_datetime' columns
 See DEQ09-LAB-006-QAG; Version 3.0 and https://www.oregon.gov/deq/wq/Documents/wqmAWQMSguide.pdf for explanation of DQLs and result status.
 }

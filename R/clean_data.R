@@ -1,7 +1,9 @@
 #' Clean data retrieved from AWQMS
 #'
 #' Removes unnecessary variables, checks data for quality,
-#' converts ug/L to mg/L and degrees Fahrenheit to degrees Celsius, adds "sample_datetime" and "sample_id" columns.
+#' converts ug/L to mg/L and degrees Fahrenheit to degrees Celsius, adds
+#' "sample_datetime" and "sample_id" columns. Updates 'Temp_Criteria' column to 13 during spawning period.
+#' Sorts data by 'MLocID', 'Char_Name', and 'sample_datetime' columns
 #' See DEQ09-LAB-006-QAG; Version 3.0 and https://www.oregon.gov/deq/wq/Documents/wqmAWQMSguide.pdf for explanation of DQLs and result status.
 #'
 #' @param data The result of an Oregon DEQ AWQMS query.
@@ -186,6 +188,32 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
     duplicated_ids <- data[duplicated(data$sample_id),"sample_id"]
     print(paste("Remaining duplicate sample id(s):", paste(duplicated_ids, collapse = ", ")))
   } else {print("No duplicates found")}
+
+  # Update temp criteria to 13 during spawning period
+  print("Updating 'Temp_Criteria' column to 13 during spawning period...")
+  data <- data %>%
+    dplyr::mutate(
+      # Append spawn start and end dates with year
+      Start_spawn = ifelse(!is.na(SpawnStart), paste0(SpawnStart,"/",lubridate::year(sample_datetime)), NA ) ,
+      End_spawn = ifelse(!is.na(SpawnEnd), paste0(SpawnEnd,"/",lubridate::year(sample_datetime)), NA ),
+      # Make spwnmn start and end date date format
+      Start_spawn = lubridate::mdy(Start_spawn),
+      End_spawn = lubridate::mdy(End_spawn),
+      # If Spawn dates span a calendar year, account for year change in spawn end date
+      End_spawn = dplyr::if_else(End_spawn < Start_spawn & sample_datetime >= End_spawn,
+                                 End_spawn + lubridate::years(1), # add a year if in spawn period carrying to next year
+                                 End_spawn), # otherwise, keep End_spawn as current year
+      Start_spawn = dplyr::if_else(End_spawn < Start_spawn & sample_datetime <= End_spawn,
+                                   Start_spawn - lubridate::years(1), # subtract a year if in spawn period carrying from previous year
+                                   Start_spawn), # otherwise, keep Start_spawn as current year
+      # Print if result is in spawn or out of spawn
+      Temp_Criteria = dplyr::case_when(Char_Name == "Temperature, water" &
+                                         (sample_datetime >= Start_spawn &
+                                            sample_datetime <= End_spawn &
+                                            !is.na(Start_spawn)) ~ 13,
+                                       TRUE ~ Temp_Criteria))
+  data <- data %>%
+    dplyr::arrange(MLocID, Char_Name, sample_datetime)
 
   return(data)
 }
