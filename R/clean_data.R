@@ -25,7 +25,7 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
                  'FishCode','SpawnCode', 'WaterTypeCode', 'WaterBodyCode', 'BacteriaCode', 'DO_code', 'ben_use_code', 'pH_code', 'DO_SpawnCode',
                  'Temp_Criteria', 'Spawn_dates', 'SpawnStart', 'SpawnEnd')
 
-  if(any(!need_cols %in% names(data))) {
+  if (any(!need_cols %in% names(data))) {
     missing_cols <- paste(need_cols[!(need_cols %in% names(data))], collapse = "', '")
     stop(paste0("The following columns are needed: '", missing_cols,"."))
   }
@@ -41,7 +41,7 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
   print(any(is.na(data$SampleStartTime)))
 
   print("Remove missing start times...")
-  if(any(is.na(data$sample_datetime))){
+  if (any(is.na(data$sample_datetime))) {
     data_dropped <- data %>% dplyr::filter(is.na(sample_datetime))
     data_dropped$reason <- "missing_datetime"
   } else {
@@ -82,7 +82,7 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
   )
   print(any(unique_stations_check[, 2:5] > 1))
 
-  if(any(unique_stations_check[, 2:5] > 1)){
+  if (any(unique_stations_check[, 2:5] > 1)) {
     print("Assigning ODEQ station location info to duplicate stations...")
     dup_stations <- unique_stations_check[rowSums(unique_stations_check[, 2:5]) > 4, ]$MLocID
     odeq_stations <- unique(filter(data, MLocID %in% dup_stations, OrganizationID == "OREGONDEQ")[, c(1:2, 6:12)])
@@ -121,7 +121,7 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
   print("Creating sample IDs...")
   data$sample_id <- paste(data$MLocID, data$Char_Name, data$sample_datetime, data$Statistical_Base, data$Method_Code, data$act_depth_height, sep = " ")
   print("Checking for duplicate samples...")
-  if(any(duplicated(data$sample_id))){
+  if (any(duplicated(data$sample_id))) {
     duplicated_ids <- data[duplicated(data$sample_id),"sample_id"]
     print(paste(length(duplicated_ids), "duplicate sample(s) found"))
 
@@ -158,9 +158,9 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
                                                                                same_result_check$sample_id))
     DQL_check_data <- data %>% dplyr::filter(sample_id %in% unique(DQL_check$sample_id))
     DQL_resolve <- NULL
-    for(i in unique(DQL_check$sample_id)){
+    for (i in unique(DQL_check$sample_id)) {
       tmp <- DQL_check_data %>% dplyr::filter(sample_id == i)
-      if("A" %in% tmp$DQL){
+      if ("A" %in% tmp$DQL) {
         tmp <- tmp %>% dplyr::filter(DQL == "A")
       } else {tmp <- tmp %>% dplyr::filter(DQL == "B")}
       DQL_resolve <- dplyr::bind_rows(DQL_resolve, tmp)
@@ -196,7 +196,7 @@ clean_data <- function(data, dql = c("A", "B", "E"), result_status = c("Final", 
       # Append spawn start and end dates with year
       Start_spawn = ifelse(!is.na(SpawnStart), paste0(SpawnStart,"/",lubridate::year(sample_datetime)), NA ) ,
       End_spawn = ifelse(!is.na(SpawnEnd), paste0(SpawnEnd,"/",lubridate::year(sample_datetime)), NA ),
-      # Make spwnmn start and end date date format
+      # Make spawn start and end date date format
       Start_spawn = lubridate::mdy(Start_spawn),
       End_spawn = lubridate::mdy(End_spawn),
       # If Spawn dates span a calendar year, account for year change in spawn end date
