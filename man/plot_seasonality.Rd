@@ -9,71 +9,65 @@ plot_seasonality(
   station_col = "MLocID",
   date_col = "SampleStartDate",
   result_col = "Result_Numeric",
-  crit_label,
-  temp_criteria = NULL,
-  spawn_criteria = 13,
-  spawn_start = NULL,
-  spawn_end = NULL,
-  fish_use = NULL,
-  buffer = 0.8,
+  temp_criteria_col = "Temp_Criteria",
+  spawn_start_col = "SpawnStart",
+  spawn_end_col = "SpawnEnd",
+  critical_plot = TRUE,
+  critical_start = "guess",
+  critical_end = "guess",
   highlight_year = NULL,
-  rm_labels = FALSE,
-  lab_impair_y_nudge = 0,
-  lab_spawn_y_nudge = 0,
-  lab_spawn_x_nudge = 0,
-  lab_crit_y_nudge = 0,
-  lab_crit_x_nudge = 0,
-  y_axis_max = NA,
-  y_label = NULL,
-  rm_legend = FALSE
+  facet = FALSE,
+  facet_col = 2,
+  show_legend = TRUE,
+  y_axis_max = 28,
+  y_label = "7DADM Temperature (deg-C)"
 )
 }
 \arguments{
 \item{df}{Data frame of data to be graphed}
 
-\item{station_col}{Name of column containing station info. Date should be formatted in y-m-d}
+\item{station_col}{Name of column containing station ID, name ,or grouping label. This is the value used for facet. Default is "MLocID".}
 
-\item{result_col}{Name of column containing result information}
+\item{date_col}{Name of the datetime column. Format as character in "yyyy-mm-dd". Defaults is "SampleStartDate".}
 
-\item{temp_criteria}{Temperature criteria. Numeric}
+\item{result_col}{Name of column containing result information. Default is 'Result_Numeric'.}
 
-\item{spawn_criteria}{Spawning criteria}
+\item{temp_criteria_col}{Name of column containing the numeric non spawning temperature criteria. Defaults is "Temp_Criteria".}
 
-\item{spawn_start}{Start of spawning season. format as Character- "mm-dd"}
+\item{spawn_start_col}{Name of column containing the spawning start date. Format as character in "mm-dd". Defaults is "SpawnStart".}
 
-\item{spawn_end}{End of spawning season. format as Character- "mm-dd"}
+\item{spawn_end_col}{Name of column containing the spawning end date. Format as character in "mm-dd". Defaults is "SpawnEnd".}
 
-\item{buffer}{Buffer value}
+\item{critical_plot}{Logical if the plot should highlight the critical period. The critical period shown on the plot is the same for all data in df. If different periods are desired the data will need to be seperated and sent to this fuction individually.}
 
-\item{highlight_year}{Optional year to highlight on graph}
+\item{critical_start}{Start of the critical period. Format as character in "mm-dd" or "guess". Guess rounds the date down by half month periods based on the earliest date temperatures exceed the temperature criteria in any given year. Default is "guess".}
 
-\item{rm_labels}{if TRUE, remove labels from graph}
+\item{critical_end}{End of the critical period. Format as character in "mm-dd" or "guess. Guess rounds the date up by half month periods based on the latest date temperatures exceed the temperature criteria in a given year. Default is "guess".}
 
-\item{lab_impair_y_nudge}{Move the impairment Unlikely label up or down}
+\item{highlight_year}{Optional year to highlight on plot. Default is NULL.}
 
-\item{lab_spawn_y_nudge}{Move the spawning criteria label up or down}
+\item{facet}{Logical if the plot should be a facet wrap using the station_col name to facet by. Default is FALSE.}
 
-\item{lab_spawn_x_nudge}{Move the spawning criteria label left or right}
+\item{show_legend}{Logical if the legend should be included on the plot. default is TRUE. the highlight year is not included  on the legend.}
 
-\item{lab_crit_y_nudge}{Move criteria label up or down}
+\item{y_axis_max}{Maximum value for the y-axis. Default is 28.}
 
-\item{lab_crit_x_nudge}{Move criteria left or right}
+\item{y_label}{Label for the y-axis. Default is '7DADM Temperature (deg-C)'.}
 
-\item{rm_legend}{If TRUE, remove the legend}
+\item{facet_cols}{Number of columns in the facet wrap. Ignored if facet = FALSE. Default is 2.}
 }
 \value{
-plot of all 7DADM data, with criteria and identified unlikely impariment seasons
+plot of all 7DADM data, with criteria and critical period
  \if{html}{\figure{seasonality.png}{Plot}}
  \if{latex}{\figure{seasonality.png}{options: width=0.5in}}
 }
 \description{
-This function produces a graph pf seven day average daily maximum river
-temperatures for a single monitoring location. These graphs are intended
-to be placed in the third section of the temperature TMDL. Choose a monitoring location with
-sufficient continuous temperature (many years worth of continuous data).
-Criteria line is drawn based of fish use station designation.
-Blue boxed represent times of unlikely impairments. They are drawn at the
-first and last day in dataset with a value of buffer * criteria.
+This function produces a plot of seven day average daily maximum river
+temperatures for one or more monitoring locations grouped by year. These plots are intended
+to be placed in the seasonal variation and critical period section of
+temperature TMDLs. The temperature criteria line is drawn based of
+fish use station designation.
+A yellow boxes can be included to represent times of impairment.
 }
 \examples{
  \dontrun{
@@ -81,23 +75,19 @@ first and last day in dataset with a value of buffer * criteria.
  library(AWQMSdata)
  library(odeqtmdlplots)
 
- data <- AWQMS_Data(station = '14034470', char = "temperature, water", stat_base = "7DADM")
+ df.raw <- AWQMS_Data(station = '14034470', char = "temperature, water",
+                    stat_base = "7DADM", crit_codes = TRUE)
+ df <- df.raw \%>\%
+ left_join(AWQMSdata::Temp_crit, by = "FishCode") \%>\%
+ left_join(AWQMSdata::LU_spawn, by = "SpawnCode") \%>\%
+ mutate(Result_Numeric = if_else(Result_Unit == "deg F",
+                                  (Result_Numeric - 32) * 5/9,
+                                  Result_Numeric)) \%>\%
+ select(MLocID, StationDes, Temp_Criteria, SpawnStart, SpawnEnd, Result_Numeric)
 
-
- plot_seasonality(df = data,
-                  station_col = 'MLocID',
-                  date_col = 'SampleStartDate',
-                  result_col = 'Result_Numeric',
-                  temp_criteria = 18,
-                  spawn_criteria = 13,
-                  spawn_start = "05-01",
-                  spawn_end = "10-01",
-                  fish_use = 'Redband',
-                  lab_spawn_x_nudge = 60,
-                  rm_legend = TRUE)
+ plot_seasonality(df = df)
 
 }
-
 
 
 }

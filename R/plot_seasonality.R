@@ -1,55 +1,50 @@
 #' plot_seasonality
 #'
-#' This function produces a graph pf seven day average daily maximum river
-#' temperatures for a single monitoring location. These graphs are intended
-#' to be placed in the third section of the temperature TMDL. Choose a monitoring location with
-#' sufficient continuous temperature (many years worth of continuous data).
-#' Criteria line is drawn based of fish use station designation.
-#' Blue boxed represent times of unlikely impairments. They are drawn at the
-#' first and last day in dataset with a value of buffer * criteria.
+#' This function produces a plot of seven day average daily maximum river
+#' temperatures for one or more monitoring locations grouped by year. These plots are intended
+#' to be placed in the seasonal variation and critical period section of
+#' temperature TMDLs. The temperature criteria line is drawn based of
+#' fish use station designation.
+#' A yellow boxes can be included to represent times of impairment.
 #'
 #' @param df Data frame of data to be graphed
-#' @param station_col Name of column containing station info. Date should be formatted in y-m-d
-#' @param result_col Name of column containing result information
-#' @param temp_criteria Temperature criteria. Numeric
-#' @param spawn_criteria Spawning criteria
-#' @param spawn_start Start of spawning season. format as Character- "mm-dd"
-#' @param spawn_end End of spawning season. format as Character- "mm-dd"
-#' @param buffer Buffer value
-#' @param highlight_year Optional year to highlight on graph
-#' @param rm_labels if TRUE, remove labels from graph
-#' @param lab_impair_y_nudge Move the impairment Unlikely label up or down
-#' @param lab_spawn_y_nudge Move the spawning criteria label up or down
-#' @param lab_spawn_x_nudge Move the spawning criteria label left or right
-#' @param lab_crit_y_nudge Move criteria label up or down
-#' @param lab_crit_x_nudge Move criteria left or right
-#' @param rm_legend If TRUE, remove the legend
+#' @param station_col Name of column containing station ID, name ,or grouping label. This is the value used for facet. Default is "MLocID".
+#' @param date_col Name of the datetime column. Format as character in "yyyy-mm-dd". Defaults is "SampleStartDate".
+#' @param result_col Name of column containing result information. Default is 'Result_Numeric'.
+#' @param temp_criteria_col Name of column containing the numeric non spawning temperature criteria. Defaults is "Temp_Criteria".
+#' @param spawn_start_col Name of column containing the spawning start date. Format as character in "mm-dd". Defaults is "SpawnStart".
+#' @param spawn_end_col Name of column containing the spawning end date. Format as character in "mm-dd". Defaults is "SpawnEnd".
+#' @param critical_plot Logical if the plot should highlight the critical period. The critical period shown on the plot is the same for all data in df. If different periods are desired the data will need to be seperated and sent to this fuction individually.
+#' @param critical_start Start of the critical period. Format as character in "mm-dd" or "guess". Guess rounds the date down by half month periods based on the earliest date temperatures exceed the temperature criteria in any given year. Default is "guess".
+#' @param critical_end End of the critical period. Format as character in "mm-dd" or "guess. Guess rounds the date up by half month periods based on the latest date temperatures exceed the temperature criteria in a given year. Default is "guess".
+#' @param highlight_year Optional year to highlight on plot. Default is NULL.
+#' @param facet Logical if the plot should be a facet wrap using the station_col name to facet by. Default is FALSE.
+#' @param facet_cols Number of columns in the facet wrap. Ignored if facet = FALSE. Default is 2.
+#' @param show_legend Logical if the legend should be included on the plot. default is TRUE. the highlight year is not included  on the legend.
+#' @param y_axis_max Maximum value for the y-axis. Default is 28.
+#' @param y_label Label for the y-axis. Default is '7DADM Temperature (deg-C)'.
 #' @examples
 #'  \dontrun{
 #'
 #'  library(AWQMSdata)
 #'  library(odeqtmdlplots)
 #'
-#'  data <- AWQMS_Data(station = '14034470', char = "temperature, water", stat_base = "7DADM")
+#'  df.raw <- AWQMS_Data(station = '14034470', char = "temperature, water",
+#'                     stat_base = "7DADM", crit_codes = TRUE)
+#'  df <- df.raw %>%
+#'  left_join(AWQMSdata::Temp_crit, by = "FishCode") %>%
+#'  left_join(AWQMSdata::LU_spawn, by = "SpawnCode") %>%
+#'  mutate(Result_Numeric = if_else(Result_Unit == "deg F",
+#'                                   (Result_Numeric - 32) * 5/9,
+#'                                   Result_Numeric)) %>%
+#'  select(MLocID, StationDes, Temp_Criteria, SpawnStart, SpawnEnd, Result_Numeric)
 #'
-#'
-#'  plot_seasonality(df = data,
-#'                   station_col = 'MLocID',
-#'                   date_col = 'SampleStartDate',
-#'                   result_col = 'Result_Numeric',
-#'                   temp_criteria = 18,
-#'                   spawn_criteria = 13,
-#'                   spawn_start = "05-01",
-#'                   spawn_end = "10-01",
-#'                   fish_use = 'Redband',
-#'                   lab_spawn_x_nudge = 60,
-#'                   rm_legend = TRUE)
+#'  plot_seasonality(df = df)
 #'
 #' }
 #'
 #'
-#'
-#' @return plot of all 7DADM data, with criteria and identified unlikely impariment seasons
+#' @return plot of all 7DADM data, with criteria and critical period
 #'  \if{html}{\figure{seasonality.png}{Plot}}
 #'  \if{latex}{\figure{seasonality.png}{options: width=0.5in}}
 #' @importFrom magrittr "%>%"
@@ -58,468 +53,136 @@
 
 
 plot_seasonality <- function(df,
-                              station_col = 'MLocID',
-                              date_col = 'SampleStartDate',
-                              result_col = 'Result_Numeric',
-                              crit_label,
-                              temp_criteria = NULL,
-                              spawn_criteria = 13,
-                              spawn_start = NULL,
-                              spawn_end = NULL,
-                              fish_use = NULL,
-                              buffer = 0.8,
-                              highlight_year = NULL,
-                              rm_labels = FALSE,
-                              lab_impair_y_nudge = 0,
-                              lab_spawn_y_nudge = 0,
-                              lab_spawn_x_nudge = 0,
-                              lab_crit_y_nudge = 0,
-                              lab_crit_x_nudge = 0,
-                              y_axis_max = NA,
-                              y_label = NULL,
-                              rm_legend = FALSE){
-
-  if(is.null(temp_criteria)){
-    stop("Include crieria value for temp_criteria")
-  }
+                             station_col = 'MLocID',
+                             date_col = 'SampleStartDate',
+                             result_col = 'Result_Numeric',
+                             temp_criteria_col = 'Temp_Criteria',
+                             spawn_start_col = 'SpawnStart',
+                             spawn_end_col = 'SpawnEnd',
+                             critical_plot = TRUE,
+                             critical_start = "guess",
+                             critical_end = "guess",
+                             highlight_year = NULL,
+                             facet = FALSE,
+                             facet_col = 2,
+                             show_legend = TRUE,
+                             y_axis_max = 28,
+                             y_label = "7DADM Temperature (deg-C)") {
 
 
-  df <-  df[,c(station_col, date_col,result_col)]
+  df1 <-  df[,c(station_col, date_col, result_col, temp_criteria_col, spawn_start_col, spawn_end_col)]
 
-  colnames(df) <- c("MLocID", "SampleStartDate", "Result_Numeric")
+  colnames(df1) <- c("MLocID", "SampleStartDate", "Result_Numeric", "Temp_Criteria", "SpawnStart", "SpawnEnd")
 
+  df2 <- df1 %>%
+    dplyr::mutate(datetime = lubridate::ymd(SampleStartDate),
+                  Year = lubridate::year(datetime),
+                  Month = lubridate::month(datetime),
+                  Day = lubridate::day(datetime),
+                  SpawnStart = lubridate::mdy(paste0(SpawnStart, "/", Year)),
+                  SpawnEnd = lubridate::mdy(paste0(SpawnEnd, "/", Year)),
+                  SpawnWinter = ifelse(lubridate::month(SpawnStart) > lubridate::month(SpawnEnd), TRUE, FALSE),
+                  BBNC = dplyr::case_when(SpawnWinter & datetime >= SpawnStart & datetime >= SpawnEnd ~ 13,
+                                          SpawnWinter & datetime <= SpawnStart & datetime <= SpawnEnd ~ 13,
+                                          datetime >= SpawnStart & datetime <= SpawnEnd ~ 13,
+                                          TRUE ~ Temp_Criteria),
+                  jday = lubridate::ymd(paste0("2020-", Month, "-", Day)),
+                  legend = "Results") %>%
+    dplyr::arrange(MLocID, datetime) %>%
+    dplyr::select(MLocID, jday, Year, Result_Numeric, BBNC, legend)
 
+  if (!is.null(highlight_year)) {
 
-  graph_data <- df %>%
-    dplyr::mutate(SampleStartDate = lubridate::ymd(SampleStartDate)) %>%
-    dplyr::group_by(MLocID) %>%
-    tidyr::complete(SampleStartDate = seq.Date(min(SampleStartDate), max(SampleStartDate), by="day")) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(year = lubridate::year(SampleStartDate),
-                  month = lubridate::month(SampleStartDate)) %>%
-    dplyr::mutate(doy = strftime(SampleStartDate, format = "%m-%d"))
-
-
-
-  if(!is.null(highlight_year)){
-
-    highlight <- graph_data %>%
-      dplyr::filter(year %in% highlight_year)
+    df.highlight <- df2 %>%
+      dplyr::filter(Year == highlight_year)
 
   }
 
+  if (critical_start == "guess") {
 
-
-  season <- graph_data %>%
-    dplyr::filter(Result_Numeric > (buffer * temp_criteria))
-
-
-
-  if (nrow(season) > 0) {
-    first_date <- as.Date((min(season$doy, na.rm = TRUE)),
-                          format = "%m-%d")
-
-    last_date <- as.Date((max(season$doy, na.rm = TRUE)),
-                         format = "%m-%d")
-
-    if (day(first_date) < 15) {
-      first_date <-  as.Date(paste0(month(first_date),
-                                    "-",
-                                    1),
-                             format = "%m-%d")
-
-    } else if (day(first_date) == 15) {
-      first_date <-  first_date
-
-    } else if (day(first_date) < days_in_month(last_date)) {
-      first_date <-  as.Date(paste0(month(first_date),
-                                    "-",
-                                    15),
-                             format = "%m-%d")
-    } else {
-      first_date <-  first_date
-    }
-
-
-
-
-    if (day(last_date) > 1) {
-      last_date <-  as.Date(paste0(month(last_date),
-                                   "-",
-                                   15),
-                            format = "%m-%d")
-
-    } else if (day(last_date) == 15) {
-      last_date <-  last_date
-
-    } else if (day(last_date) > 15) {
-      last_date <-  as.Date(paste0(month(last_date),
-                                   "-",
-                                   days_in_month(last_date)),
-                            format = "%m-%d")
-    } else {
-      last_date <-  last_date
-    }
-
-
-
-  } else {
-    first_date <- as.Date("12-31",
-                          format = "%m-%d")
-    last_date <- as.Date("12-31",
-                         format = "%m-%d")
-
+    critical_start <- df2 %>%
+      dplyr::filter(Result_Numeric - BBNC > 0) %>%
+      dplyr::slice(which.min(jday)) %>%
+      dplyr::mutate(end = dplyr::case_when(lubridate::day(jday) >= 15 ~ lubridate::floor_date(jday, unit = "month") + lubridate::ddays(14),
+                                           TRUE ~ lubridate::floor_date(jday, unit = "month")),
+                    end = format(end, format = "%m-%d")) %>%
+      dplyr::pull(end)
   }
 
-  if(!is.null(spawn_end)){
-    # spawn -------------------------------------------------------------------
+  if (critical_end == "guess") {
 
-
-    spawn_season <- graph_data %>%
-      dplyr::mutate(Spawnstart = as.Date(spawn_start, format = "%m-%d"),
-                    spawnend = as.Date(spawn_end, format = "%m-%d")) %>%
-      dplyr::mutate(inspawn = ifelse(Spawnstart < spawnend &
-                                       as.Date(graph_data$doy, format = "%m-%d") >= Spawnstart &
-                                       as.Date(graph_data$doy, format = "%m-%d") <= spawnend, 1,
-                                     ifelse(Spawnstart > spawnend &
-                                              (as.Date(graph_data$doy, format = "%m-%d") >= Spawnstart |
-                                                 as.Date(graph_data$doy, format = "%m-%d") <= spawnend) , 1, 0 ))) %>%
-      dplyr::filter(Result_Numeric > (buffer * spawn_criteria) &
-                      inspawn == 1)
-
-
-
-
-    if(nrow(spawn_season) > 0){
-      first_date_spawn <- as.Date((min(spawn_season$doy, na.rm = TRUE)),
-                                  format = "%m-%d")
-      last_date_spawn <- as.Date((max(spawn_season$doy, na.rm = TRUE)),
-                                 format = "%m-%d")
-
-    } else {
-      first_date_spawn <- as.Date(spawn_start,
-                                  format = "%m-%d")
-      last_date_spawn <- as.Date(spawn_end,
-                                 format = "%m-%d")
-
-    }
-
+    critical_end <- df2 %>%
+      dplyr::filter(Result_Numeric - BBNC > 0) %>%
+      dplyr::slice(which.max(jday)) %>%
+      dplyr::mutate(end = dplyr::case_when(lubridate::day(jday) < 15 ~ lubridate::floor_date(jday, unit = "month") + lubridate::ddays(14),
+                                           TRUE ~ lubridate::ceiling_date(jday, unit = "month")),
+                    end = format(end, format = "%m-%d")) %>%
+      dplyr::pull(end)
   }
 
 
-  g <- ggplot2::ggplot() +
-    ggplot2::geom_line(data = graph_data,
-                       ggplot2::aes(x = as.Date(graph_data$doy, format = "%m-%d"),
-                                    y = Result_Numeric,
-                                    group = interaction(year,MLocID),
-                                    linetype = MLocID),
-                       color = "grey47")+
-    ggplot2::theme_classic()+
-    ggplot2::scale_x_date(breaks = seq(as.Date("01-01", format = "%m-%d"),
-                                       as.Date("12-31", format = "%m-%d"),
-                                       by = "1 months"),
-                          date_labels = "%b",
-                          expand = ggplot2::expand_scale())+
-    ggplot2::scale_y_continuous(breaks=seq(0,100,5),
-                                limits = c(0,y_axis_max),
-                                expand = c(0,0))+
-    #ggplot2::guides(linetype=FALSE) +
-    ggplot2::guides(color=ggplot2::guide_legend(title="Year"),
-                    linetype=ggplot2::guide_legend(title="Monitoring Location"))+
-    ggplot2::theme(legend.position="bottom")
-  #break here
+  df3 <- df2 %>%
+    dplyr::select(MLocID, jday, BBNC) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(Result_Numeric = BBNC,
+                  Year = lubridate::year(jday),
+                  legend = "Temperature Criteria") %>%
+    dplyr::arrange(MLocID, jday, legend) %>%
+    dplyr::select(MLocID, jday, Year, Result_Numeric, BBNC, legend) %>%
+    rbind(df2)
 
-  if(is.null(y_label)) {
+  p1 <-  df3 %>%
+    ggplot2::ggplot(ggplot2::aes(x = jday))
 
-    g <- g +
-      ggplot2::labs(x = "Date",
-                  y = "7DADM Temperature (°C)")
-  } else {
-    g <- g +
-      ggplot2::labs(x = "Date",
-                    y = y_label)
 
+  if (critical_plot) {
+
+    p1 <- p1 +
+      ggplot2::annotate("rect",
+                        xmin = lubridate::ymd(paste0("2020-", critical_start)),
+                        xmax = lubridate::ymd(paste0("2020-", critical_end)),
+                        ymin = 0,
+                        ymax = y_axis_max, alpha = 0.3, color = "yellow")
   }
 
 
-  # No spawn
+  p1 <- p1 +
+    ggplot2::geom_line(ggplot2::aes(y = Result_Numeric,
+                                    color = legend,
+                                    linetype = legend,
+                                    group = interaction(MLocID, Year, legend)),
+                       linewidth = 0.5, show.legend = show_legend) +
+    ggplot2::scale_color_manual(values = c("Temperature Criteria" = "black", "Results" = "grey47")) +
+    ggplot2::scale_linetype_manual(values = c("Temperature Criteria" = "dashed", "Results" = "solid")) +
+    ggplot2::theme(legend.position = "bottom",
+                   legend.title = ggplot2::element_blank(),
+                   legend.key = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_rect(fill = "white", colour = "black"),
+                   strip.background = ggplot2::element_rect(fill = "white", colour = "black"),
+                   panel.grid.major = ggplot2::element_line(colour = "lightgrey"),
+                   text = element_text(size = 10, family = "sans")) +
+    ggplot2::scale_x_date(name = "Date", date_breaks = "1 month", date_labels = "%b") +
+    ggplot2::scale_y_continuous(name = y_label,
+                                limits = c(0, y_axis_max))
 
-  if(is.null(spawn_start)){
-    g <- g +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date("01-01", format = "%m-%d"),
-                                         xend = as.Date("12-31", format = "%m-%d"),
-                                         y = temp_criteria,
-                                         yend = temp_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_rect(ggplot2::aes(xmin = as.Date("01-01", format = "%m-%d"),
-                                      xmax = first_date,
-                                      ymin = 0,
-                                      ymax = temp_criteria),
-                         alpha = 0.3, fill = 'steelblue2') +
-      ggplot2::geom_rect(ggplot2::aes(xmin = last_date,
-                                      xmax = as.Date("12-31", format = "%m-%d"),
-                                      ymin = 0,
-                                      ymax = temp_criteria),
-                         alpha = 0.3, fill = 'steelblue2') +
-      ggplot2::annotate("text", label = "Impairment \n unlikely",
-                        x = as.Date('01-10', format = "%m-%d"),
-                        y = 10 + lab_impair_y_nudge,
-                        size = 3,
-                        hjust = 0) +
-      ggplot2::annotate("text", label = crit_label,
-                        x = as.Date("01-01", format = "%m-%d") + lab_crit_x_nudge,
-                        y = temp_criteria  + 0.5  + lab_crit_y_nudge,
-                        size = 3,
-                        hjust = 0)
-
-    #spawn in middle of period
-  } else if(as.Date(spawn_start, format = "%m-%d") < as.Date(spawn_end, format = "%m-%d") &
-            spawn_start != "01-01"){
-
-    g <- g +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date("01-01", format = "%m-%d"),
-                                         xend = as.Date(spawn_start, format = "%m-%d"),
-                                         y = temp_criteria,
-                                         yend = temp_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date(spawn_end, format = "%m-%d"),
-                                         xend = as.Date("12-31", format = "%m-%d"),
-                                         y = temp_criteria,
-                                         yend = temp_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date(spawn_start, format = "%m-%d"),
-                                         xend = as.Date(spawn_end, format = "%m-%d"),
-                                         y = spawn_criteria,
-                                         yend = spawn_criteria),
-                            linetype = "longdash",
-                            size = 0.7)+
-      ggplot2::geom_rect(ggplot2::aes(xmin = as.Date("01-01", format = "%m-%d"),
-                                      xmax = first_date,
-                                      ymin = 0,
-                                      ymax = temp_criteria),
-                         alpha = 0.3, fill = 'steelblue2') +
-      ggplot2::geom_rect(ggplot2::aes(xmin = last_date,
-                                      xmax = as.Date("12-31", format = "%m-%d"),
-                                      ymin = 0,
-                                      ymax = temp_criteria),
-                         alpha = 0.3, fill = 'steelblue2')
-
-    if(as.Date(spawn_start, format = "%m-%d") == first_date){
-      g <- g +
-        ggplot2::geom_rect(ggplot2::aes(xmin = as.Date(spawn_start, format = "%m-%d"),
-                                      xmax = first_date_spawn,
-                                      ymin = 0,
-                                      ymax = spawn_criteria),
-                         alpha = 0.3, fill = 'steelblue2')
-
-    }
-
-
-
-    if(rm_labels == TRUE){
-      g <- g +
-        ggplot2::annotate("text", label = "Impairment \n unlikely",
-                          x = as.Date('01-10', format = "%m-%d"),
-                          y = 10 + lab_impair_y_nudge,
-                          size = 3,
-                          hjust = 0) +
-        ggplot2::annotate("text", label = "Spawning Criterion",
-                          x = as.Date(spawn_start, format = "%m-%d") + lab_spawn_x_nudge,
-                          y = spawn_criteria  + 0.5  + lab_spawn_y_nudge,
-                          size = 3,
-                          hjust = 0) +
-        ggplot2::annotate("text", label = crit_label,
-                          x = as.Date('01-10', format = "%m-%d") + lab_crit_x_nudge,
-                          y = temp_criteria  + 0.5  + lab_crit_y_nudge,
-                          size = 3,
-                          hjust = 0)
-    }
-
-    #spawn starting on January 1st
-  } else if(spawn_start == "01-01"){
-
-    g <- g +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date(spawn_start, format = "%m-%d"),
-                                         xend = as.Date(spawn_end, format = "%m-%d"),
-                                         y = spawn_criteria,
-                                         yend = spawn_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date(spawn_end, format = "%m-%d"),
-                                         xend = as.Date("12-31", format = "%m-%d"),
-                                         y = temp_criteria,
-                                         yend = temp_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_rect(ggplot2::aes(xmin = as.Date(spawn_start, format = "%m-%d"),
-                                      xmax = min(first_date_spawn, as.Date(spawn_end, format = "%m-%d")),
-                                      ymin = 0,
-                                      ymax = spawn_criteria),
-                         alpha = 0.3, fill = 'steelblue2') +
-      ggplot2::geom_rect(ggplot2::aes(xmin = last_date_spawn,
-                                      xmax = as.Date(spawn_end, format = "%m-%d"),
-                                      ymin = 0,
-                                      ymax = spawn_criteria),
-                         alpha = 0.3, fill = 'steelblue2') +
-      ggplot2::geom_rect(ggplot2::aes(xmin = last_date,
-                                      xmax = as.Date("12-31", format = "%m-%d"),
-                                      ymin = 0,
-                                      ymax = temp_criteria),
-                         alpha = 0.3, fill = 'steelblue2')
-
-    if(first_date > as.Date(spawn_end, format = "%m-%d") &
-       min(first_date_spawn, as.Date(spawn_end, format = "%m-%d")) == as.Date(spawn_end, format = "%m-%d")){
-
-
-      g <- g +
-        ggplot2::geom_rect(ggplot2::aes(xmin = as.Date(spawn_end, format = "%m-%d"),
-                                        xmax = first_date ,
-                                        ymin = 0,
-                                        ymax = temp_criteria),
-                           alpha = 0.3, fill = 'steelblue2')
-
-    }
-
-
-    if(!rm_labels){
-      g <- g +
-        ggplot2::annotate("text", label = "Impairment \n unlikely",
-                          x = as.Date('01-10', format = "%m-%d"),
-                          y = 10 + lab_impair_y_nudge,
-                          size = 3,
-                          hjust = 0) +
-        ggplot2::annotate("text", label = "Spawning Criterion",
-                          x = as.Date('01-10', format = "%m-%d") + lab_spawn_x_nudge,
-                          y = spawn_criteria  + 0.5  + lab_spawn_y_nudge,
-                          size = 3,
-                          hjust = 0) +
-        ggplot2::annotate("text", label = paste(fish_use, "-", temp_criteria, " C"),
-                          x = as.Date(spawn_end, format = "%m-%d") + lab_crit_x_nudge,
-                          y = temp_criteria  + 0.5  + lab_crit_y_nudge,
-                          size = 3,
-                          hjust = 0)
-    }
-
-
-  } else if (as.Date(spawn_start, format = "%m-%d") > as.Date(spawn_end, format = "%m-%d") &
-             spawn_start != "01-01") {
-
-    g <- g +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date('01-01', format = "%m-%d"),
-                                         xend = as.Date(spawn_end, format = "%m-%d"),
-                                         y = spawn_criteria,
-                                         yend = spawn_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date(spawn_start, format = "%m-%d"),
-                                         xend = as.Date('12-31', format = "%m-%d"),
-                                         y = spawn_criteria,
-                                         yend = spawn_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_segment(ggplot2::aes(x = as.Date(spawn_end, format = "%m-%d"),
-                                         xend = as.Date(spawn_start, format = "%m-%d"),
-                                         y = temp_criteria,
-                                         yend = temp_criteria),
-                            linetype = "longdash",
-                            size = 0.7) +
-      ggplot2::geom_rect(ggplot2::aes(xmin = as.Date('01-01', format = "%m-%d"),
-                                      xmax = min(first_date_spawn, as.Date(spawn_end, format = "%m-%d")),
-                                      ymin = 0,
-                                      ymax = spawn_criteria),
-                         alpha = 0.3, fill = 'steelblue2')+
-      ggplot2::geom_rect(ggplot2::aes(xmin = max(last_date_spawn, as.Date(spawn_start, format = "%m-%d")),
-                                      xmax = as.Date('12-31', format = "%m-%d"),
-                                      ymin = 0,
-                                      ymax = spawn_criteria),
-                         alpha = 0.3, fill = 'steelblue2')
-
-
-    if(!rm_labels){
-      g <- g +
-        ggplot2::annotate("text", label = "Impairment \n unlikely",
-                        x = as.Date('01-10', format = "%m-%d"),
-                        y = 10 + lab_impair_y_nudge,
-                        size = 3,
-                        hjust = 0) +
-         ggplot2::annotate("text", label = "Spawning Criterion",
-                        x = as.Date('01-10', format = "%m-%d") + lab_spawn_x_nudge,
-                        y = spawn_criteria  + 0.5  + lab_spawn_y_nudge,
-                        size = 3,
-                        hjust = 0) +
-         ggplot2::annotate("text", label = paste(fish_use, "-", temp_criteria, " C"),
-                        x = as.Date(spawn_end, format = "%m-%d") + lab_crit_x_nudge,
-                        y = temp_criteria  + 0.5  + lab_crit_y_nudge,
-                        size = 3,
-                        hjust = 0)
-    }
-
-
-    if(first_date > as.Date(spawn_end, format = "%m-%d")){
-
-      g <-  g+
-        ggplot2::geom_rect(ggplot2::aes(xmin = as.Date(spawn_end, format = "%m-%d"),
-                                        xmax = first_date ,
-                                        ymin = 0,
-                                        ymax = temp_criteria),
-                           alpha = 0.3, fill = 'steelblue2')
-
-    }
-
-
-    if(last_date < as.Date(spawn_start, format = "%m-%d")){
-
-      g <- g+
-        ggplot2::geom_rect(ggplot2::aes(xmin = last_date,
-                                        xmax =as.Date(spawn_start, format = "%m-%d") ,
-                                        ymin = 0,
-                                        ymax = temp_criteria),
-                           alpha = 0.3, fill = 'steelblue2')
-
-    }
-
-  } else {
-
-    g <- g
-  }
-
-
-
-
-
-  if(!is.null(highlight_year) > 0){
-
-    if(nrow(highlight) > 0){
-
-    g <- g +
-      ggplot2::geom_line(data = highlight,
-                         ggplot2::aes(x = as.Date(highlight$doy, format = "%m-%d"),
+  if (!is.null(highlight_year)) {
+    p1 <- p1 +
+      ggplot2::geom_line(data = df.highlight,
+                         ggplot2::aes(x = jday,
                                       y = Result_Numeric,
-                                      group = interaction(year,MLocID),
-                                      color = as.character(highlight_year),
-                                      linetype = MLocID),
-                         size = 1.2) +
-      ggplot2::scale_color_manual(name = '', values = "black")
-
-    } else {
-
-      g <- g
-    }
+                                      group = interaction(MLocID, Year)),
+                         linewidth = 1,
+                         linetype = "solid",
+                         color = "black",
+                         show.legend = FALSE, inherit.aes = FALSE)
 
   }
 
-  if(rm_legend){
-
-    g <- g +
-      ggplot2::guides(linetype=FALSE,
-                      color = FALSE)
+  if (facet) {
+    p1 <- p1 +
+      ggplot2::facet_wrap(facet = ggplot2::vars(MLocID), ncol = facet_col)
   }
 
-  return(g)
+  return(p1)
 
 }
-
-
