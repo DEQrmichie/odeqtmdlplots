@@ -20,4 +20,4 @@ Imports: odbc, DBI, glue,
          magrittr, AWQMSdata, 
          dplyr, lubridate, ggplot2,
          tidyr, cowplot
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
