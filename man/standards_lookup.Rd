@@ -9,8 +9,8 @@ standards_lookup(
   exclude_field = NULL,
   exclude_params = NULL,
   layer = "Oregon_Standards",
- 
-    gdb_file = "//deqhq1/GISLIBRARY/Base_Data/DEQ_Data/Water_Quality/WQ_Standards/GeoRef_Standards.gdb"
+  gdb_file =
+    "//deqhq1/GISLIBRARY/Base_Data/DEQ_Data/Water_Quality/WQ_Standards/GeoRef_Standards.gdb"
 )
 }
 \arguments{
